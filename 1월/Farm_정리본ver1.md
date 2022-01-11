@@ -1,3 +1,20 @@
+- [SDK](#sdk)
+    - [k4abttypes.h 정의 내용](#k4abttypesh-정의-내용)
+      - [목은 3](#목은-3)
+      - [왼쪽 어깨는 5](#왼쪽-어깨는-5)
+      - [왼쪽 팔꿈치는 6](#왼쪽-팔꿈치는-6)
+      - [왼쪽 손목은 7](#왼쪽-손목은-7)
+- [C++ 데이터 받기](#c-데이터-받기)
+  - [초기 설정](#초기-설정)
+  - [Kinect 4개 관절 좌표 받아서 위치 시각화](#kinect-4개-관절-좌표-받아서-위치-시각화)
+    - [Kinect에서 4개 받아서 csv 저장 주요 코드](#kinect에서-4개-받아서-csv-저장-주요-코드)
+- [파이썬 시각화](#파이썬-시각화)
+    - [FuncAnimation](#funcanimation)
+  - [kinect plot 2개 짜는 과정 (애니메이션 2개 동시 plot 테스트용)](#kinect-plot-2개-짜는-과정-애니메이션-2개-동시-plot-테스트용)
+  - [kinect, imu relative 동시 plot 코드](#kinect-imu-relative-동시-plot-코드)
+  - [kinect relative, imu relative, kinect와 imu의 relative](#kinect-relative-imu-relative-kinect와-imu의-relative)
+- [참고](#참고)
+
 # SDK
 
 ### k4abttypes.h 정의 내용
@@ -82,7 +99,67 @@ typedef enum
 } k4abt_joint_id_t;
 ```
 # C++ 데이터 받기
+## 초기 설정
+![Image](https://i.imgur.com/4UtjGat.png)
+프로젝트 속성에서 고급 - 문자 집합 - 멀티바이트 문자 집합으로 변경 (파일명 저장 시 hhmmss Format 하기 위함.)
 
+## Kinect 4개 관절 좌표 받아서 위치 시각화
+### Kinect에서 4개 받아서 csv 저장 주요 코드
+https://github.com/i-zro/HBTwithKI/blob/main/Kin_FourJoint/Kin_FourJoint.cpp
+```cpp
+#define neck 3
+#define ls 5
+#define le 6
+#define lw 7
+// neck : 목, ls : 왼쪽 어깨, le : 왼쪽 팔꿈치, lw : 왼쪽 손목
+.
+.
+.
+                    k4abt_body_t body = body_frame.get_body(i);
+                        kvalues.clear();
+                        kvalues.push_back(LocalMilli());
+                        // neck
+                        k4a_float3_t neckpos = body.skeleton.joints[neck].position;
+                        k4a_quaternion_t neckori = body.skeleton.joints[neck].orientation;
+                        k4abt_joint_confidence_level_t neckconf = body.skeleton.joints[neck].confidence_level;
+
+                        kvalues.push_back(neck);kvalues.push_back(neckpos.v[0]);kvalues.push_back(neckpos.v[1]);kvalues.push_back(neckpos.v[2]); // 관절좌표 위치부터 신뢰도까지 담기
+                        kvalues.push_back(neckori.v[0]);kvalues.push_back(neckori.v[1]);kvalues.push_back(neckori.v[2]);kvalues.push_back(neckori.v[3]);
+                        kvalues.push_back(neckconf);
+
+                        // left shoulder
+                        k4a_float3_t lspos = body.skeleton.joints[ls].position;
+                        k4a_quaternion_t lsori = body.skeleton.joints[ls].orientation;
+                        k4abt_joint_confidence_level_t lsconf = body.skeleton.joints[ls].confidence_level;
+
+                        kvalues.push_back(ls);kvalues.push_back(lspos.v[0]);kvalues.push_back(lspos.v[1]);kvalues.push_back(lspos.v[2]); // 관절좌표 위치부터 신뢰도까지 담기
+                        kvalues.push_back(lsori.v[0]);kvalues.push_back(lsori.v[1]);kvalues.push_back(lsori.v[2]);kvalues.push_back(lsori.v[3]);
+                        kvalues.push_back(lsconf);
+
+                        // left elbow
+                        k4a_float3_t lepos = body.skeleton.joints[le].position;
+                        k4a_quaternion_t leori = body.skeleton.joints[le].orientation;
+                        k4abt_joint_confidence_level_t leconf = body.skeleton.joints[le].confidence_level;
+
+                        kvalues.push_back(le);kvalues.push_back(lepos.v[0]);kvalues.push_back(lepos.v[1]);kvalues.push_back(lepos.v[2]); // 관절좌표 위치부터 신뢰도까지 담기
+                        kvalues.push_back(leori.v[0]);kvalues.push_back(leori.v[1]);kvalues.push_back(leori.v[2]);kvalues.push_back(leori.v[3]);
+                        kvalues.push_back(leconf);
+
+                        // left wrist
+                        k4a_float3_t lwpos = body.skeleton.joints[lw].position;
+                        k4a_quaternion_t lwori = body.skeleton.joints[lw].orientation;
+                        k4abt_joint_confidence_level_t lwconf = body.skeleton.joints[lw].confidence_level;
+
+                        kvalues.push_back(lw);kvalues.push_back(lwpos.v[0]);kvalues.push_back(lwpos.v[1]);kvalues.push_back(lwpos.v[2]); // 관절좌표 위치부터 신뢰도까지 담기
+                        kvalues.push_back(lwori.v[0]);kvalues.push_back(lwori.v[1]);kvalues.push_back(lwori.v[2]);kvalues.push_back(lwori.v[3]);
+                        kvalues.push_back(lwconf);
+                        write_csv(dName + kcsv, kvalues);
+```
+: 시간, 관절 번호, 위치 좌표들 3개(xyz), orientation 좌표들 4개(wxyz), 신뢰도
+
+![Image](https://i.imgur.com/fmj4Iu3.png)
+
+[🧾csvFile](https://github.com/i-zro/HBTwithKI/blob/main/csv_files/K_220112_012632.csv)
 
 # 파이썬 시각화
 ### FuncAnimation
@@ -399,3 +476,7 @@ ani3 = FuncAnimation(fig, # fig에 그릴 것.
 plt.show()
 ```
 ![Image](https://i.imgur.com/MPTQEMK.png)
+
+# 참고
+https://hansonminlearning.tistory.com/30
+plot 여러 팝업창으로 plot
